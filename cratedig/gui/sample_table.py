@@ -126,12 +126,11 @@ class SampleTable(QWidget):
         header.setStretchLastSection(False)
         header.setMinimumSectionSize(44)
         for col, name in enumerate(_COLUMNS):
-            if col == _FNAME_COL:
-                header.setSectionResizeMode(col, QHeaderView.ResizeMode.Stretch)
-                self._table.setColumnWidth(col, 240)
-            else:
-                header.setSectionResizeMode(col, QHeaderView.ResizeMode.Fixed)
-                self._table.setColumnWidth(col, _COLUMN_WIDTHS.get(name, 80))
+            # Interactive mode keeps the initial layout while allowing users to
+            # drag any header boundary to reveal truncated values.
+            header.setSectionResizeMode(col, QHeaderView.ResizeMode.Interactive)
+            width = 240 if col == _FNAME_COL else _COLUMN_WIDTHS.get(name, 80)
+            self._table.setColumnWidth(col, width)
         self._table.verticalHeader().setVisible(False)
 
         self._table.setItemDelegateForColumn(_SIM_COL, SimilarityBarDelegate(self._table))

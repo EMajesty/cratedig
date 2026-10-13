@@ -1036,7 +1036,7 @@ class TestSampleTable:
 
         assert [url.toLocalFile() for url in mime.urls()] == ["/packs/a.wav", "/packs/b.wav"]
 
-    def test_filename_column_is_visible_and_optional_columns_hidden_by_default(self):
+    def test_columns_are_resizable_and_optional_columns_hidden_by_default(self):
         self._app()
         from cratedig.gui.sample_table import SampleTable
 
@@ -1045,11 +1045,19 @@ class TestSampleTable:
             table._table.horizontalHeaderItem(col).text()
             for col in range(table._table.columnCount())
         ]
-        fname_col = headers.index("Filename")
         tags_col = headers.index("Tags")
         sim_col = headers.index("Similarity")
 
-        assert table._table.horizontalHeader().sectionResizeMode(fname_col).name == "Stretch"
+        header = table._table.horizontalHeader()
+        assert all(
+            header.sectionResizeMode(col).name == "Interactive"
+            for col in range(table._table.columnCount())
+        )
+
+        bpm_col = headers.index("BPM")
+        old_width = table._table.columnWidth(bpm_col)
+        table._table.setColumnWidth(bpm_col, old_width + 40)
+        assert table._table.columnWidth(bpm_col) == old_width + 40
         assert not table._table.isColumnHidden(tags_col)  # Tags now visible by default
         assert table._table.isColumnHidden(sim_col)
 

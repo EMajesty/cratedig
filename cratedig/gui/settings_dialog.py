@@ -60,8 +60,12 @@ class SettingsDialog(QDialog):
 
         # Wire tab signals up to dialog signals
         self._prefs_tab.preference_changed.connect(self._on_preference_changed)
-        self._config_tab.config_written.connect(self.config_written)
-        self._paths_tab.config_written.connect(self.config_written)
+        # Forward explicitly instead of connecting signal-to-signal.  PySide
+        # versions differ in how reliably a bound SignalInstance is treated as
+        # a callable slot; when forwarding failed, the config was written but
+        # MainWindow never received config_written, making Save appear inert.
+        self._config_tab.config_written.connect(self.config_written.emit)
+        self._paths_tab.config_written.connect(self.config_written.emit)
 
         # Apply initial auto_preview_enabled override
         self._prefs_tab.set_auto_preview_enabled(bool(auto_preview_enabled))

@@ -97,6 +97,19 @@ class TestSettingsDialogConstruction:
         dialog = SettingsDialog()
         assert hasattr(dialog, "config_written")
 
+    def test_paths_save_signal_is_forwarded(self, qsettings_temp_path):
+        """Saving a selected path notifies the main window through the dialog."""
+        _app()
+        from cratedig.gui.settings_dialog import SettingsDialog
+
+        dialog = SettingsDialog()
+        emissions = []
+        dialog.config_written.connect(lambda: emissions.append(True))
+
+        dialog._paths_tab.config_written.emit()
+
+        assert emissions == [True]
+
     def test_dialog_exposes_auto_preview_changed_legacy_signal(self, qsettings_temp_path):
         """Dialog.auto_preview_changed signal exists (legacy shim)."""
         _app()

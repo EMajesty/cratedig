@@ -36,7 +36,12 @@
         installPhase = ''
           runHook preInstall
 
-          mkdir -p $out/share/cratedig $out/bin
+          mkdir -p \
+            $out/share/cratedig \
+            $out/share/applications \
+            $out/share/icons/hicolor/256x256/apps \
+            $out/bin
+
           cp -r cratedig $out/share/cratedig/
           cp -r packaging $out/share/cratedig/
           cp config.example.toml $out/share/cratedig/ 2>/dev/null || true
@@ -50,6 +55,22 @@
             --add-flags "-m cratedig" \
             --prefix PYTHONPATH : "$out/share/cratedig" \
             --prefix PATH : "${pkgs.lib.makeBinPath [ pkgs.ffmpeg ]}"
+
+          ${pkgs.imagemagick}/bin/magick packaging/cratedig.ico[0] \
+            -resize 256x256 \
+            $out/share/icons/hicolor/256x256/apps/cratedig.png
+
+          cat > $out/share/applications/cratedig.desktop <<EOF
+          [Desktop Entry]
+          Type=Application
+          Name=Cratedig
+          Comment=Browse, analyze, and find similar audio samples
+          Exec=cratedig
+          Icon=cratedig
+          Terminal=false
+          Categories=AudioVideo;Audio;Music;
+          StartupNotify=true
+          EOF
 
           runHook postInstall
         '';

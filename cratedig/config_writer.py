@@ -46,8 +46,15 @@ def _example_path(target: Path) -> Path:
     candidate = target.parent / EXAMPLE_CONFIG_NAME
     if candidate.is_file():
         return candidate
+    # Installed packages keep read-only resources separately from the writable
+    # per-user config directory (for example, in the Nix store).
+    from cratedig.paths import resource_path
+
+    bundled = resource_path(EXAMPLE_CONFIG_NAME)
+    if bundled.is_file():
+        return bundled
     raise ConfigWriterError(
-        f"Cannot find {EXAMPLE_CONFIG_NAME} next to {target}"
+        f"Cannot find bundled {EXAMPLE_CONFIG_NAME} for {target}"
     )
 
 

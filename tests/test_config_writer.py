@@ -96,6 +96,19 @@ class TestEnsureConfigExists:
         doc = tomlkit.loads(target.read_text())
         assert "paths" in doc or "audio" in doc
 
+    def test_copies_bundled_example_when_not_next_to_target(self, tmp_path, monkeypatch):
+        """Packaged installs seed a writable config from read-only resources."""
+        bundled = tmp_path / "bundle" / "config.example.toml"
+        bundled.parent.mkdir()
+        bundled.write_text("[paths]\nsaved_dir = \"saved\"\n", encoding="utf-8")
+        target = tmp_path / "user-data" / "config.toml"
+        monkeypatch.setattr("cratedig.paths.resource_path", lambda _name: bundled)
+
+        result = ensure_config_exists(target)
+
+        assert result == target
+        assert target.read_text(encoding="utf-8") == bundled.read_text(encoding="utf-8")
+
     def test_returns_target_when_already_exists(self, tmp_path):
         """If target already exists, return it unchanged."""
         self._copy_example(tmp_path)

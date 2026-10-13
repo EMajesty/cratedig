@@ -51,6 +51,10 @@ def _load_display_doc():
         return tomlkit.parse(target.read_text(encoding="utf-8"))
 
     example = target.parent / config_writer.EXAMPLE_CONFIG_NAME
+    if not example.is_file():
+        from cratedig.paths import resource_path
+
+        example = resource_path(config_writer.EXAMPLE_CONFIG_NAME)
     if example.is_file():
         return tomlkit.parse(example.read_text(encoding="utf-8"))
 

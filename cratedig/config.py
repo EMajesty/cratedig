@@ -12,6 +12,7 @@ from pathlib import Path
 DEFAULT_CONFIG_NAME = "config.toml"
 EXAMPLE_CONFIG_NAME = "config.example.toml"
 ENV_CONFIG = "CRATEDIG_CONFIG"
+ENV_PACKAGED = "CRATEDIG_PACKAGED"
 
 
 @dataclass(frozen=True)
@@ -53,16 +54,18 @@ def _resolve(root: Path, value: str) -> Path:
 
 def _default_config_path() -> Path:
     """./config.toml in a source run; %APPDATA%\\cratedig\\config.toml when frozen."""
-    if getattr(sys, "frozen", False):
+    if getattr(sys, "frozen", False) or os.environ.get(ENV_PACKAGED) == "1":
         from .paths import user_data_dir
 
         return user_data_dir() / DEFAULT_CONFIG_NAME
     return Path(DEFAULT_CONFIG_NAME)
 
 
-def _seed_config_if_frozen(cfg_path: Path) -> None:
-    """On first frozen run, copy the bundled config.example.toml to the user dir."""
-    if not getattr(sys, "frozen", False) or cfg_path.is_file():
+def _seed_config_if_packaged(cfg_path: Path) -> None:
+    """On first packaged run, copy the bundled example to the user data dir."""
+    if not (
+        getattr(sys, "frozen", False) or os.environ.get(ENV_PACKAGED) == "1"
+    ) or cfg_path.is_file():
         return
     from .paths import resource_path
 
@@ -84,7 +87,7 @@ def load_config(path: str | os.PathLike | None = None) -> Config:
     else:
         env = os.environ.get(ENV_CONFIG)
         cfg_path = Path(env) if env else _default_config_path()
-    _seed_config_if_frozen(cfg_path)
+    _seed_config_if_packaged(cfg_path)
     root = cfg_path.parent if cfg_path.is_file() else Path(".")
 
     raw: dict = {}

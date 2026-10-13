@@ -48,11 +48,13 @@
 
           makeWrapper ${pythonEnv}/bin/python $out/bin/cratedig \
             --add-flags "-m cratedig gui" \
+            --set CRATEDIG_PACKAGED 1 \
             --prefix PYTHONPATH : "$out/share/cratedig" \
             --prefix PATH : "${pkgs.lib.makeBinPath [ pkgs.ffmpeg ]}"
 
           makeWrapper ${pythonEnv}/bin/python $out/bin/cratedig-tui \
             --add-flags "-m cratedig" \
+            --set CRATEDIG_PACKAGED 1 \
             --prefix PYTHONPATH : "$out/share/cratedig" \
             --prefix PATH : "${pkgs.lib.makeBinPath [ pkgs.ffmpeg ]}"
 

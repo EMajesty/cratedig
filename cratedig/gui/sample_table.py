@@ -142,6 +142,12 @@ class SampleTable(QWidget):
 
         # Restore saved column state if prefs say so
         self._restore_column_state()
+        # QHeaderView.saveState() also serializes resize modes.  States saved by
+        # older releases therefore restore Fixed/Stretch modes and silently
+        # undo the interactive setup above.  Reapply only the mode after the
+        # state so saved sizes, visibility, and ordering are retained.
+        for col in range(len(_COLUMNS)):
+            header.setSectionResizeMode(col, QHeaderView.ResizeMode.Interactive)
 
         self._table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self._table.customContextMenuRequested.connect(self._on_context_menu)

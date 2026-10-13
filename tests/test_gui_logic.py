@@ -1064,6 +1064,27 @@ class TestSampleTable:
         table.set_samples([Sample(id=1, path="/packs/a.wav", filename="a.wav")], scores={1: 0.5})
         assert not table._table.isColumnHidden(sim_col)
 
+    def test_legacy_saved_header_state_does_not_restore_fixed_columns(self, tmp_path):
+        self._app()
+        from PySide6.QtCore import QSettings
+        from PySide6.QtWidgets import QHeaderView
+        from cratedig.gui.sample_table import SampleTable
+
+        settings = QSettings(str(tmp_path / "settings.ini"), QSettings.Format.IniFormat)
+        legacy = SampleTable()
+        header = legacy._table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        for col in range(1, legacy._table.columnCount()):
+            header.setSectionResizeMode(col, QHeaderView.ResizeMode.Fixed)
+        settings.setValue("browser/column_widths", header.saveState())
+
+        restored = SampleTable(settings=settings)
+        restored_header = restored._table.horizontalHeader()
+        assert all(
+            restored_header.sectionResizeMode(col) == QHeaderView.ResizeMode.Interactive
+            for col in range(restored._table.columnCount())
+        )
+
     def test_clicking_same_row_index_after_repopulate_emits_selection(self):
         # Regression: switching tree node (e.g. library -> crate) repopulates the
         # table but Qt keeps the current row index, so clicking the same index

@@ -894,7 +894,7 @@ class MainWindow(QMainWindow):
 
         node = self._nodes.get(key)
         if node is not None:
-            self._sample_table.set_samples(node.samples, self._tags_by_id)
+            self._sample_table.set_samples(node.samples_recursive(), self._tags_by_id)
             return True
         return False
 

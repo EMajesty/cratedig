@@ -16,6 +16,13 @@ class FolderNode:
     children: dict[str, "FolderNode"] = field(default_factory=dict)
     samples: list[Sample] = field(default_factory=list)
 
+    def samples_recursive(self) -> list[Sample]:
+        """Return samples in this folder and all of its descendant folders."""
+        samples = list(self.samples)
+        for child in self.children.values():
+            samples.extend(child.samples_recursive())
+        return samples
+
 
 def build_folder_tree(
     samples: list[Sample],

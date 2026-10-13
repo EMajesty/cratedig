@@ -6,6 +6,33 @@ from cratedig.db.models import Sample
 from cratedig.tui.browser import build_folder_tree, FolderNode
 
 
+def test_folder_node_samples_recursive_includes_all_descendants():
+    root_sample = Sample(id=1, path="/library/root.wav", filename="root.wav")
+    child_sample = Sample(id=2, path="/library/drums/kick.wav", filename="kick.wav")
+    grandchild_sample = Sample(
+        id=3, path="/library/drums/kicks/deep.wav", filename="deep.wav"
+    )
+    grandchild = FolderNode("kicks", "library/drums/kicks", "library/drums")
+    grandchild.samples.append(grandchild_sample)
+    child = FolderNode(
+        "drums",
+        "library/drums",
+        "library",
+        children={"kicks": grandchild},
+        samples=[child_sample],
+    )
+    root = FolderNode(
+        "library",
+        "library",
+        None,
+        children={"drums": child},
+        samples=[root_sample],
+    )
+
+    assert root.samples_recursive() == [root_sample, child_sample, grandchild_sample]
+    assert child.samples_recursive() == [child_sample, grandchild_sample]
+
+
 def _sample(path: str, **kw) -> Sample:
     return Sample(id=None, path=path, filename=path.split("/")[-1], **kw)
 

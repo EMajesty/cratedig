@@ -56,7 +56,7 @@
             --prefix PYTHONPATH : "$out/share/cratedig" \
             --prefix PATH : "${pkgs.lib.makeBinPath [ pkgs.ffmpeg ]}"
 
-          ${pkgs.imagemagick}/bin/magick packaging/cratedig.ico[0] \
+          ${pkgs.imagemagick}/bin/magick 'packaging/cratedig.ico[0]' \
             -resize 256x256 \
             $out/share/icons/hicolor/256x256/apps/cratedig.png
 

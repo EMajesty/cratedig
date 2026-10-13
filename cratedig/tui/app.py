@@ -247,13 +247,13 @@ class CratedigApp(App):
             _add_node(tree.root, rn)
 
     def _load_folder_contents(self, folder_key: str) -> None:
-        """Populate the table with samples in folder_key and its descendants."""
+        """Populate the contents DataTable with direct samples of folder_key."""
         self._selected_folder_key = folder_key
         self.query_one("#breadcrumb", Static).update(folder_key)
         self.db.touch_recent_folder(folder_key)
 
         node = self._folder_nodes.get(folder_key)
-        samples = node.samples_recursive() if node else []
+        samples = node.samples if node else []
 
         contents = self.query_one("#contents", DataTable)
         contents.clear(columns=True)

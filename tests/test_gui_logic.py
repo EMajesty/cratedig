@@ -1315,6 +1315,40 @@ def test_main_window_refreshes_current_tree_table_after_reload():
     assert table.calls == [([sample], {1: ["tag"]})]
 
 
+def test_main_window_folder_can_include_descendant_samples():
+    pytest.importorskip("PySide6")
+    from cratedig.gui.main_window import MainWindow
+
+    class TableStub:
+        def __init__(self):
+            self.samples = []
+
+        def set_samples(self, samples, *_args, **_kwargs):
+            self.samples = list(samples)
+
+    class CheckedStub:
+        def isChecked(self):
+            return True
+
+    direct = Sample(id=1, path="/packs/direct.wav", filename="direct.wav")
+    nested = Sample(id=2, path="/packs/drums/kick.wav", filename="kick.wav")
+    child = FolderNode("drums", "packs/drums", "packs", samples=[nested])
+    root = FolderNode(
+        "packs", "packs", None, children={"drums": child}, samples=[direct]
+    )
+    window = MainWindow.__new__(MainWindow)
+    window._sample_table = TableStub()
+    window._tags_by_id = {}
+    window._favorites_by_id = {}
+    window._saved_folder_samples = {}
+    window._crate_samples_by_id = {}
+    window._nodes = {"packs": root, "packs/drums": child}
+    window._include_subfolders = CheckedStub()
+
+    assert MainWindow._set_table_for_tree_key(window, "packs", False)
+    assert window._sample_table.samples == [direct, nested]
+
+
 def test_main_window_clears_table_when_current_folder_disappears_after_reload():
     pytest.importorskip("PySide6")
     from cratedig.gui.main_window import MainWindow

@@ -232,6 +232,18 @@ class MainWindow(QMainWindow):
         self._lib_tag_completer.setModel(QStringListModel([], self))
         self._lib_tag_search.setCompleter(self._lib_tag_completer)
         self._lib_tag_search.installEventFilter(self)
+        self._include_subfolders = QCheckBox("Include subfolders")
+        self._include_subfolders.setToolTip(
+            "Show samples from the selected folder and all folders below it"
+        )
+        self._include_subfolders.setChecked(
+            self._settings.value(
+                _keys.INCLUDE_SUBFOLDERS,
+                _keys.DEFAULTS[_keys.INCLUDE_SUBFOLDERS],
+                type=bool,
+            )
+        )
+        self._include_subfolders.toggled.connect(self._on_include_subfolders_toggled)
 
         self._lib_search_timer = QTimer(self)
         self._lib_search_timer.setSingleShot(True)
@@ -245,6 +257,7 @@ class MainWindow(QMainWindow):
         search_row.setSpacing(8)
         search_row.addWidget(self._lib_search, stretch=2)
         search_row.addWidget(self._lib_tag_search, stretch=1)
+        search_row.addWidget(self._include_subfolders)
 
         table_container = QWidget()
         table_container.setObjectName("Panel")
@@ -829,6 +842,11 @@ class MainWindow(QMainWindow):
         if not shown and self._current_tree_key not in {"__favorites__", "__saved__", "__crates__"}:
             self._sample_table.set_samples([], self._tags_by_id)
 
+    def _on_include_subfolders_toggled(self, checked: bool) -> None:
+        self._settings.setValue(_keys.INCLUDE_SUBFOLDERS, checked)
+        if not self._lib_search.text().strip() and not self._lib_tag_search.text().strip():
+            self._refresh_current_tree_table()
+
     def eventFilter(self, obj, event) -> bool:
         if obj is self._lib_tag_search and event.type() == QEvent.Type.FocusIn:
             QTimer.singleShot(0, self._show_all_tag_completions)
@@ -894,7 +912,13 @@ class MainWindow(QMainWindow):
 
         node = self._nodes.get(key)
         if node is not None:
-            self._sample_table.set_samples(node.samples_recursive(), self._tags_by_id)
+            samples = (
+                node.samples_recursive()
+                if getattr(self, "_include_subfolders", None)
+                and self._include_subfolders.isChecked()
+                else node.samples
+            )
+            self._sample_table.set_samples(samples, self._tags_by_id)
             return True
         return False
 
